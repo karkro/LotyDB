@@ -1,10 +1,11 @@
 package model;
 
+import java.text.NumberFormat;
 import java.util.Date;
 
 public class Lot {
 
-    private int id;
+    private Long id;
     private String skad;
     private String dokad;
     private Date dataWylotu;
@@ -12,7 +13,7 @@ public class Lot {
     private int iloscMiejscBiznesowych;
     private int iloscMiejscEkonomicznych;
 
-    public Lot(int id, String skad, String dokad, Date dataWylotu, int cena,
+    public Lot(Long id, String skad, String dokad, Date dataWylotu, int cena,
                int iloscMiejscBiznesowych, int iloscMiejscEkonomicznych) {
         super();
         this.id = id;
@@ -26,23 +27,16 @@ public class Lot {
 
     @Override
     public String toString() {
-        return "Lot{" +
-                "id=" + id +
-                ", skad='" + skad + '\'' +
-                ", dokad='" + dokad + '\'' +
-                ", dataWylotu=" + dataWylotu +
-                ", cena=" + cena +
-                ", iloscMiejscBiznesowych=" + iloscMiejscBiznesowych +
-                ", iloscMiejscEkonomicznych=" + iloscMiejscEkonomicznych +
-                '}';
+        NumberFormat formater = NumberFormat.getCurrencyInstance();
+        return skad + " - " + dokad + " / " + dataWylotu + " [" + formater.format(cena) + "]";
     }
 
 
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

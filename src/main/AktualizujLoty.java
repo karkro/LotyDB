@@ -21,7 +21,7 @@ public class AktualizujLoty extends DBConnect {
         preparedStatement.setString(2, lot.getDokad());
         preparedStatement.setDate(3, new Date(lot.getDataWylotu().getTime()));
         preparedStatement.setInt(4, lot.getCena());
-        preparedStatement.setInt(5, lot.getId());
+        preparedStatement.setLong(5, lot.getId());
 
         preparedStatement.execute();
     }
@@ -29,7 +29,7 @@ public class AktualizujLoty extends DBConnect {
     public static void main(String[] args) throws ParseException {
         AktualizujLoty aktualizujLoty = new AktualizujLoty();
         Map<String, Object> context = new HashMap<>();
-        Lot lot = new Lot(1, "Tokyo", "Dubai",
+        Lot lot = new Lot(1L, "Tokyo", "Dubai",
                 new SimpleDateFormat("yyyy-MM-dd").parse("2020-03-15"),
                 2500, 30, 140);
         context.put("lot", lot);

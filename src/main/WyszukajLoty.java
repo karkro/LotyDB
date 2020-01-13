@@ -46,7 +46,7 @@ public class WyszukajLoty extends DBConnect {
         while (resultSet.next()) {
 
             loty.add(new Lot(
-                resultSet.getInt("id_lotu"),
+                resultSet.getLong("id_lotu"),
                 resultSet.getString("skad"),
                 resultSet.getString("dokad"),
                 resultSet.getDate("data_wylotu"),
@@ -68,8 +68,7 @@ public class WyszukajLoty extends DBConnect {
         //context.put("dokad", "Warszawa");
 
         wyszukajLoty.execute(context);
-        //List<Lot> loty = (List<Lot>) context.get("wynik");
-        List<Lot> loty = (List<Lot>) context.get("wynik");
+        List<Lot> loty =  (List<Lot>) context.get("wynik");
 
         for (Lot lot : loty) {
             System.out.println(lot);
