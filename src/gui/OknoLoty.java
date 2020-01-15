@@ -1,5 +1,6 @@
 package gui;
 
+import main.AktualizujLoty;
 import main.WyszukajLoty;
 import model.Lot;
 
@@ -8,23 +9,36 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.text.NumberFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 public class OknoLoty extends JFrame {
 
     private DefaultListModel<Lot> lotyListModel;
+
     private JTextField poleId;
     private JTextField poleSkad;
     private JTextField poleDokad;
     private JTextField poleDataWylotu;
     private JTextField poleCena;
+    private JButton przyciskZapisz;
 
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+    private NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
+
+    private Lot biezacyLot;
+
 
     private OknoLoty() {
+
+        JMenuBar menuBar = stworzMenu();
+        setJMenuBar(menuBar);
+
         JPanel panelWyszukiwania = stworzPanelWyszukiwania();
         add(panelWyszukiwania, BorderLayout.NORTH);
 
@@ -33,8 +47,23 @@ public class OknoLoty extends JFrame {
 
         JPanel panelEdycji = stworzPanelEdycji();
         add(panelEdycji, BorderLayout.EAST);
+
         pack();
         setVisible(true);
+    }
+
+    private JMenuBar stworzMenu() {
+        JMenuBar menuBar = new JMenuBar();
+        JMenu menu = new JMenu("Menu");
+        menuBar.add(menu);
+
+        final String NAPISNOWYLOT = "Nowy lot";
+        JMenuItem nowyLotMenuItem = new JMenuItem(NAPISNOWYLOT);
+        nowyLotMenuItem.addActionListener(e -> JOptionPane.showMessageDialog(this, NAPISNOWYLOT));
+        menu.add(nowyLotMenuItem);
+        menu.add(new JCheckBoxMenuItem("Baza Danych"));
+
+        return menuBar;
     }
 
     private JPanel stworzPanelWyszukiwania() {
@@ -53,19 +82,14 @@ public class OknoLoty extends JFrame {
         przyciskSzukaj.addActionListener(e -> {
             /*JOptionPane.showConfirmDialog(panelWyszukiwania, "Lot z: " + poleTekstoweSkad.getText() + " do: " +
                     poleTekstoweDokad.getText(), "Uwaga!", JOptionPane.PLAIN_MESSAGE);*/
-            aktualizujListeLotow(poleTekstoweSkad.getText(), poleTekstoweDokad.getText());
+            wyszukanaListaLotow(poleTekstoweSkad.getText(), poleTekstoweDokad.getText());
         });
         panelWyszukiwania.add(przyciskSzukaj);
         return panelWyszukiwania;
     }
 
 
-    private boolean niepusty(String skad) {
-        return skad != null && !skad.isEmpty();
-    }
-
-
-    private void aktualizujListeLotow(String skad, String dokad) {
+    private void wyszukanaListaLotow(String skad, String dokad) {
         WyszukajLoty wyszukajLoty = new WyszukajLoty();
         Map<String, Object> context = new HashMap<>();
 
@@ -84,6 +108,11 @@ public class OknoLoty extends JFrame {
             lotyListModel.addElement(lot);
         }
 
+    }
+
+
+    private boolean niepusty(String skad) {
+        return skad != null && !skad.isEmpty();
     }
 
 
@@ -111,10 +140,23 @@ public class OknoLoty extends JFrame {
         });
 
         panelWynikowWyszukiwania.add(new JScrollPane(listaLotow));
-        // panelWynikowWyszukiwania.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK), "Znalezione loty"));
+        panelWynikowWyszukiwania.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.DARK_GRAY), "Znalezione loty"));
+
 
         return panelWynikowWyszukiwania;
     }
+
+
+    private void pokazWybranyLot(Lot lot) {
+        poleId.setText(lot.getId().toString());
+        poleSkad.setText(lot.getSkad());
+        poleDokad.setText(lot.getDokad());
+        poleDataWylotu.setText(dateFormat.format(lot.getDataWylotu()));
+        poleCena.setText(currencyFormat.format(lot.getCena()));
+
+        biezacyLot = lot;
+    }
+
 
     private JPanel stworzPanelEdycji() {
         JPanel panelEdycji = new JPanel();
@@ -143,20 +185,41 @@ public class OknoLoty extends JFrame {
         panelEdycji.add(poleCena);
 
         panelEdycji.add(new JLabel(""));
-        panelEdycji.add(new JButton("Zapisz"));
+        przyciskZapisz = new JButton("Zapisz");
+        panelEdycji.add(przyciskZapisz);
+        przyciskZapisz.addActionListener(e -> {
+            if (biezacyLot != null) {
+                aktualizujWBazieDanych();
+            }
+        });
 
         return panelEdycji;
 
     }
 
 
-    private void pokazWybranyLot(Lot lot) {
-        poleId.setText(lot.getId().toString());
-        poleSkad.setText(lot.getSkad());
-        poleDokad.setText(lot.getDokad());
+    private void aktualizujWBazieDanych() {
+        biezacyLot.setSkad(poleSkad.getText());
+        biezacyLot.setDokad(poleDokad.getText());
+        try {
+            biezacyLot.setDataWylotu(dateFormat.parse(poleDataWylotu.getText()));
+        } catch (ParseException e) {
+            JOptionPane.showMessageDialog(this, "Data jest w niepoprawnym formacie dd-MM-yyyy");
+            return;
+        }
+        try {
+            biezacyLot.setCena(currencyFormat.parse(poleCena.getText()).intValue());
+        } catch (ParseException e) {
+            JOptionPane.showMessageDialog(this, "Cena w niepoprawnym formacie xxx zł");
+            return;
+        }
 
-        poleDataWylotu.setText(dateFormat.format(lot.getDataWylotu()));
-        poleCena.setText(NumberFormat.getCurrencyInstance().format(lot.getCena()));
+        Map<String, Object> context = new HashMap<>();
+        context.put("lot", biezacyLot);
+
+        new AktualizujLoty().execute(context);
+        JOptionPane.showMessageDialog(this, "Zaktualizowano lot");
+
     }
 
 
